@@ -8,7 +8,7 @@
  
  ## 🅿 주요 소스 코드
  
- ![](https://github.com/kbm0996/Linkedlist_with_iterator/blob/master/capture.jpg?raw=true
+ ![](https://github.com/kbm0996/Linkedlist_with_iterator/blob/master/capture.jpg?raw=true)
  
  **figure 1. 예제 프로그램 실행 화면*
  
