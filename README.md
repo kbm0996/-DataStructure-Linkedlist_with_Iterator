@@ -6,103 +6,99 @@
  두번째로, 컬렉션 내부 구현에 대한 이해 없이도 그 집합체 내의 모든 항목에 접근할 수 있게 해주는 방법을 제공한다. 예를 들어서, array, list, hashtable, vector, set, map 등 각종 컨테이너들은 추가, 삽입, 검색, 삭제 등 항목에 대한 처리 방식이 모두 다르다. 이러한 *반복 작업*을 iterator 객체에 맡기면 인터페이스(=순수 가상 함수) 및 구현이 간단해진다. 실제로 iterator 패턴은 C++ STL의 iterator, java의 iterator 메소드 등으로 많이 사용되고 있다.
 
  
- ## 🅿 원리
- ### 1. 노드 추가
-   
+ ## 🅿 주요 소스 코드
  
- #### ● 소스 코드
-      void DoublyLinkedlist::push_front(char* szData)
-      {
-        stNODE *pNode = (stNODE*)malloc(sizeof(stNODE));
-
-        memcpy(pNode->szData, szData, sizeof(pNode->szData));
-
-        pNode->pPrev = &_Head;
-        pNode->pNext = _Head.pNext;
-        pNode->pPrev->pNext = pNode;
-        pNode->pNext->pPrev = pNode;
-      }
-
-      void DoublyLinkedlist::push_back(char* szData)
-      {
-        stNODE *pNode = (stNODE*)malloc(sizeof(stNODE));
-
-        memcpy(pNode->szData, szData, sizeof(pNode->szData));
-
-        pNode->pPrev = _Tail.pPrev;
-        pNode->pNext = &_Tail;
-        pNode->pPrev->pNext = pNode;
-        pNode->pNext->pPrev = pNode;
-      }
+ ![](https://github.com/kbm0996/Linkedlist_with_iterator/blob/master/capture.jpg?raw=true
  
- ### 2. 노드 제거
+ **figure 1. 예제 프로그램 실행 화면*
  
-  ![](https://s3.ap-northeast-2.amazonaws.com/opentutorials-user-file/module/1335/2969.png)
+ ### ● class list
+ 아래 코드 이외 DoublyLinkedlist와 동일
+ 
+    iterator begin()
+    {
+      iterator begin(_Head._pNext);
+      return begin;
+    }
 
- **figure 8. Phase 1*
+    iterator end()
+    {
+      iterator end(&_Tail);
+      return end;
+    }
 
-  삭제하려는 노드의 이전 노드(20)을 찾습니다.
+    iterator erase(iterator iter)
+    {
+      iterator temp = iter;
+      Node *pNode = temp.getNode();
+      ++temp;
+
+      pNode->_Data = 0;
+      pNode->_pNext->_pPrev = pNode->_pPrev;
+      pNode->_pPrev->_pNext = pNode->_pNext;
+      delete(pNode);
+
+      return temp;
+    }
+ 
+ ### ● class iterator (inner class of list)
+  연산자 오버로딩을 이용해 컨테이너를 제어하는 클래스
   
-  ![](https://s3.ap-northeast-2.amazonaws.com/opentutorials-user-file/module/1335/2970.png)
+     class iterator
+     {
+     private:
+       Node *_pNode;
+     public:
+       iterator(Node *node = nullptr)
+       {
+         _pNode = node;
+       }
 
- **figure 9. Phase 2*
-  
-  삭제하려는 노드(30)도 찾습니다.
+       iterator operator ++(int)
+       {
+         iterator temp = _pNode;
+         _pNode = _pNode->_pNext;
+         return temp;
+       }
+       iterator operator ++()
+       {
+         _pNode = _pNode->_pNext;
+         return *this;
+       }
+       iterator operator --(int)
+       {
+         iterator temp = _pNode;
+         _pNode = _pNode->_pPrev;
+         return *this;
+       }
 
-  ![](https://s3.ap-northeast-2.amazonaws.com/opentutorials-user-file/module/1335/2971.png)
+       iterator operator --()
+       {
+         _pNode = _pNode->_pPrev;
+         return *this;
+       }
 
- **figure 10. Phase 3*
+       T& operator *()
+       {
+         return _pNode->_Data;
+       }
 
-  삭제하려는 노드의 다음 노드(40)도 찾습니다.
+       bool operator !=(iterator& iter)
+       {
+         return _pNode != iter._pNode;
+       }
 
-  ![](https://s3.ap-northeast-2.amazonaws.com/opentutorials-user-file/module/1335/2972.png)
+       bool operator ==(iterator& iter)
+       {
+         return _pNode == iter._pNode;
+       }
 
- **figure 11. Phase 4*
+       Node* getNode()
+       {
+         return this->_pNode;
+       }
+     };
 
-  30을 삭제합니다.
-
-  ![](https://s3.ap-northeast-2.amazonaws.com/opentutorials-user-file/module/1335/2973.png)
-
- **figure 12. Phase 5*
-
-  20의 다음 노드로 40을 지정합니다.
-
-  ![](https://s3.ap-northeast-2.amazonaws.com/opentutorials-user-file/module/1335/2974.png)
-
- **figure 13. Phase 6*
-
-  40의 이전 노드로 20을 지정합니다.
-
-  ![](https://s3.ap-northeast-2.amazonaws.com/opentutorials-user-file/module/1335/2975.png)
-
- **figure 14. Phase 7*
-
-  삭제가 완료 되었습니다.
- 
- 
-  #### ● 소스 코드
-      bool DoublyLinkedlist::Delete(char* szData)
-      {
-        stNODE *pNode = _Head.pNext;
-
-        while (pNode->pNext != NULL)
-        {
-          if (strcmp(pNode->szData, szData) == 0)
-          {
-            pNode->pPrev->pNext = pNode->pNext;
-            pNode->pNext->pPrev = pNode->pPrev;
-            free(pNode);
-            return true;
-          }
-          pNode = pNode->pNext;
-        }
-        return false;
-      }
- 
- 
- ## 📌 이미지 및 설명 출처 
- 
- 원리 파트 - https://opentutorials.org/module/1335/8940
 
 
 
